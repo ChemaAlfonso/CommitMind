@@ -94,9 +94,9 @@
             "type": "frser-sqlite-datasource",
             "uid": "sqlite-uid"
           },
-          "queryText": "SELECT strftime('%Y-%m-%dT%H:%M:%SZ', date) AS time, commit_count AS 'Commits' FROM commit_frequency ORDER BY date",
+          "queryText": "SELECT strftime('%Y-%m-%dT%H:%M:%SZ', date) AS time, commit_count AS 'Commits' FROM commit_frequency WHERE date BETWEEN date($__from/1000, 'unixepoch') AND date($__to/1000, 'unixepoch') ORDER BY date",
           "queryType": "table",
-          "rawQueryText": "SELECT strftime('%Y-%m-%dT%H:%M:%SZ', date) AS time, commit_count AS 'Commits' FROM commit_frequency ORDER BY date",
+          "rawQueryText": "SELECT strftime('%Y-%m-%dT%H:%M:%SZ', date) AS time, commit_count AS 'Commits' FROM commit_frequency WHERE date BETWEEN date($__from/1000, 'unixepoch') AND date($__to/1000, 'unixepoch') ORDER BY date",
           "refId": "A",
           "timeColumns": ["time", "ts"]
         }
@@ -181,9 +181,9 @@
             "type": "frser-sqlite-datasource",
             "uid": "sqlite-uid"
           },
-          "queryText": "SELECT CAST(hour AS TEXT) || ':00' as hour, commit_count as 'Commits' FROM daily_commit_pattern ORDER BY CAST(hour AS INTEGER)",
+          "queryText": "SELECT CAST(strftime('%H', timestamp) AS TEXT) || ':00' as hour, COUNT(*) as 'Commits' FROM events WHERE type = 'commit' AND datetime(timestamp) BETWEEN datetime($__from/1000, 'unixepoch') AND datetime($__to/1000, 'unixepoch') GROUP BY strftime('%H', timestamp) ORDER BY CAST(strftime('%H', timestamp) AS INTEGER)",
           "queryType": "table",
-          "rawQueryText": "SELECT CAST(hour AS TEXT) || ':00' as hour, commit_count as 'Commits' FROM daily_commit_pattern ORDER BY CAST(hour AS INTEGER)",
+          "rawQueryText": "SELECT CAST(strftime('%H', timestamp) AS TEXT) || ':00' as hour, COUNT(*) as 'Commits' FROM events WHERE type = 'commit' AND datetime(timestamp) BETWEEN datetime($__from/1000, 'unixepoch') AND datetime($__to/1000, 'unixepoch') GROUP BY strftime('%H', timestamp) ORDER BY CAST(strftime('%H', timestamp) AS INTEGER)",
           "refId": "A"
         }
       ],
@@ -247,13 +247,13 @@
             "type": "frser-sqlite-datasource",
             "uid": "sqlite-uid"
           },
-          "queryText": "SELECT SUM(commit_count) as value FROM weekly_productivity ORDER BY week DESC LIMIT 1",
+          "queryText": "SELECT COUNT(*) as value FROM events WHERE type = 'commit' AND datetime(timestamp) BETWEEN datetime($__from/1000, 'unixepoch') AND datetime($__to/1000, 'unixepoch')",
           "queryType": "table",
-          "rawQueryText": "SELECT SUM(commit_count) as value FROM weekly_productivity ORDER BY week DESC LIMIT 1",
+          "rawQueryText": "SELECT COUNT(*) as value FROM events WHERE type = 'commit' AND datetime(timestamp) BETWEEN datetime($__from/1000, 'unixepoch') AND datetime($__to/1000, 'unixepoch')",
           "refId": "A"
         }
       ],
-      "title": "Commits This Week",
+      "title": "Total Commits",
       "type": "gauge"
     },
     {
@@ -313,13 +313,13 @@
             "type": "frser-sqlite-datasource",
             "uid": "sqlite-uid"
           },
-          "queryText": "SELECT COUNT(DISTINCT service) as value FROM project_activity WHERE commits_last_week > 0",
+          "queryText": "SELECT COUNT(DISTINCT service) as value FROM events WHERE type = 'commit' AND datetime(timestamp) BETWEEN datetime($__from/1000, 'unixepoch') AND datetime($__to/1000, 'unixepoch')",
           "queryType": "table",
-          "rawQueryText": "SELECT COUNT(DISTINCT service) as value FROM project_activity WHERE commits_last_week > 0",
+          "rawQueryText": "SELECT COUNT(DISTINCT service) as value FROM events WHERE type = 'commit' AND datetime(timestamp) BETWEEN datetime($__from/1000, 'unixepoch') AND datetime($__to/1000, 'unixepoch')",
           "refId": "A"
         }
       ],
-      "title": "Active Projects This Week",
+      "title": "Active Projects",
       "type": "gauge"
     },
     {
@@ -374,9 +374,9 @@
             "type": "frser-sqlite-datasource",
             "uid": "sqlite-uid"
           },
-          "queryText": "SELECT service, commits_last_month as value FROM project_activity WHERE commits_last_month > 0 ORDER BY commits_last_month DESC LIMIT 10",
+          "queryText": "SELECT service, COUNT(*) as value FROM events WHERE type = 'commit' AND datetime(timestamp) BETWEEN datetime($__from/1000, 'unixepoch') AND datetime($__to/1000, 'unixepoch') GROUP BY service ORDER BY value DESC LIMIT 10",
           "queryType": "table",
-          "rawQueryText": "SELECT service, commits_last_month as value FROM project_activity WHERE commits_last_month > 0 ORDER BY commits_last_month DESC LIMIT 10",
+          "rawQueryText": "SELECT service, COUNT(*) as value FROM events WHERE type = 'commit' AND datetime(timestamp) BETWEEN datetime($__from/1000, 'unixepoch') AND datetime($__to/1000, 'unixepoch') GROUP BY service ORDER BY value DESC LIMIT 10",
           "refId": "A"
         }
       ],
@@ -445,7 +445,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "commits_last_month"
+              "options": "commits_last_30d"
             },
             "properties": [
               {
@@ -474,9 +474,9 @@
             "type": "frser-sqlite-datasource",
             "uid": "sqlite-uid"
           },
-          "queryText": "SELECT service, total_commits, days_active, commits_last_week, commits_last_month FROM project_activity ORDER BY total_commits DESC LIMIT 20",
+          "queryText": "SELECT service, COUNT(*) as total_commits, COUNT(DISTINCT DATE(timestamp)) as days_active, COUNT(CASE WHEN timestamp >= datetime('now', '-7 days') THEN 1 END) as commits_last_7d, COUNT(CASE WHEN timestamp >= datetime('now', '-30 days') THEN 1 END) as commits_last_30d FROM events WHERE type = 'commit' AND datetime(timestamp) BETWEEN datetime($__from/1000, 'unixepoch') AND datetime($__to/1000, 'unixepoch') GROUP BY service ORDER BY total_commits DESC LIMIT 20",
           "queryType": "table",
-          "rawQueryText": "SELECT service, total_commits, days_active, commits_last_week, commits_last_month FROM project_activity ORDER BY total_commits DESC LIMIT 20",
+          "rawQueryText": "SELECT service, COUNT(*) as total_commits, COUNT(DISTINCT DATE(timestamp)) as days_active, COUNT(CASE WHEN timestamp >= datetime('now', '-7 days') THEN 1 END) as commits_last_7d, COUNT(CASE WHEN timestamp >= datetime('now', '-30 days') THEN 1 END) as commits_last_30d FROM events WHERE type = 'commit' AND datetime(timestamp) BETWEEN datetime($__from/1000, 'unixepoch') AND datetime($__to/1000, 'unixepoch') GROUP BY service ORDER BY total_commits DESC LIMIT 20",
           "refId": "A"
         }
       ],
@@ -492,7 +492,7 @@
     "list": []
   },
   "time": {
-    "from": "now-7d",
+    "from": "now-30d",
     "to": "now"
   },
   "timepicker": {},

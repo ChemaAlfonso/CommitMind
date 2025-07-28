@@ -8,11 +8,14 @@ interface Migration {
 	up: string;
 }
 
+// Note: Since this is a new app not in production, we've consolidated all migrations
+// into a single initial schema. Future changes should be added as new migrations.
 const migrations: Migration[] = [
 	{
 		version: 1,
 		name: 'initial_schema',
 		up: `
+			-- Core events table
 			CREATE TABLE IF NOT EXISTS events (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				source TEXT NOT NULL,
@@ -28,22 +31,12 @@ const migrations: Migration[] = [
 				created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 			);
 			
+			-- Indexes for performance
 			CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp);
 			CREATE INDEX IF NOT EXISTS idx_events_service ON events(service);
 			CREATE INDEX IF NOT EXISTS idx_events_commit ON events(commit_sha);
 			CREATE INDEX IF NOT EXISTS idx_events_type ON events(type);
 			CREATE INDEX IF NOT EXISTS idx_events_author ON events(author);
-		`
-	},
-	{
-		version: 2,
-		name: 'commit_based_views',
-		up: `
-			-- Drop old deployment-focused views if they exist
-			DROP VIEW IF EXISTS deployment_frequency;
-			DROP VIEW IF EXISTS lead_time;
-			DROP VIEW IF EXISTS change_failure_rate;
-			DROP VIEW IF EXISTS time_to_restore;
 			
 			-- Commit Frequency: commits per day
 			CREATE VIEW IF NOT EXISTS commit_frequency AS
@@ -54,7 +47,6 @@ const migrations: Migration[] = [
 				COUNT(DISTINCT author) as authors
 			FROM events
 			WHERE type = 'commit'
-				AND timestamp >= datetime('now', '-90 days')
 			GROUP BY DATE(timestamp);
 			
 			-- PR/MR Activity: merged PRs per day
@@ -66,7 +58,6 @@ const migrations: Migration[] = [
 				source
 			FROM events
 			WHERE type = 'pr_merged'
-				AND timestamp >= datetime('now', '-90 days')
 			GROUP BY DATE(timestamp), source;
 			
 			-- Weekly Productivity: commits per week
@@ -79,10 +70,9 @@ const migrations: Migration[] = [
 				ROUND(CAST(COUNT(*) as FLOAT) / COUNT(DISTINCT DATE(timestamp)), 1) as avg_commits_per_day
 			FROM events
 			WHERE type = 'commit'
-				AND timestamp >= datetime('now', '-90 days')
 			GROUP BY strftime('%Y-W%W', timestamp);
 			
-			-- Project Activity: commits per project
+			-- Project Activity: all time stats with recent activity columns
 			CREATE VIEW IF NOT EXISTS project_activity AS
 			SELECT 
 				service,
@@ -96,7 +86,7 @@ const migrations: Migration[] = [
 			GROUP BY service
 			ORDER BY total_commits DESC;
 			
-			-- Daily Commit Pattern: commits by hour of day
+			-- Daily Commit Pattern: hourly distribution
 			CREATE VIEW IF NOT EXISTS daily_commit_pattern AS
 			SELECT 
 				CAST(strftime('%H', timestamp) as INTEGER) as hour,
@@ -104,19 +94,20 @@ const migrations: Migration[] = [
 				ROUND(CAST(COUNT(*) as FLOAT) * 100.0 / (SELECT COUNT(*) FROM events WHERE type = 'commit'), 1) as percentage
 			FROM events
 			WHERE type = 'commit'
-				AND timestamp >= datetime('now', '-90 days')
-			GROUP BY strftime('%H', timestamp);
+			GROUP BY hour
+			ORDER BY hour;
 			
-			-- Monthly Trends: month over month comparison
+			-- Monthly Trends: commits per month
 			CREATE VIEW IF NOT EXISTS monthly_trends AS
 			SELECT 
 				strftime('%Y-%m', timestamp) as month,
 				COUNT(*) as total_commits,
 				COUNT(DISTINCT service) as unique_projects,
 				COUNT(DISTINCT DATE(timestamp)) as active_days,
-				COUNT(CASE WHEN type = 'pr_merged' THEN 1 END) as prs_merged
+				COUNT(DISTINCT author) as unique_authors,
+				ROUND(CAST(COUNT(*) as FLOAT) / COUNT(DISTINCT DATE(timestamp)), 1) as avg_commits_per_day
 			FROM events
-			WHERE timestamp >= datetime('now', '-365 days')
+			WHERE type = 'commit'
 			GROUP BY strftime('%Y-%m', timestamp)
 			ORDER BY month DESC;
 			
@@ -129,7 +120,6 @@ const migrations: Migration[] = [
 				ROUND(CAST(COUNT(*) as FLOAT) / COUNT(DISTINCT author), 1) as avg_commits_per_contributor
 			FROM events
 			WHERE type = 'commit'
-				AND timestamp >= datetime('now', '-90 days')
 			GROUP BY service
 			HAVING COUNT(DISTINCT author) > 1
 			ORDER BY contributors DESC;
