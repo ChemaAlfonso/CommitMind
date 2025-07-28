@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { logger } from '../services/logger';
 import { generateAISummary } from '../services/ai';
-import { sendToSlack } from '../services/slack';
+import { sendNotifications } from '../services/notifications';
 import { 
 	getWeeklyMetrics, 
 	getCommitFrequency, 
@@ -85,20 +85,20 @@ metricsRouter.post('/bot/summary', async (_req, res) => {
 	}
 });
 
-// Send summary to Slack
-metricsRouter.post('/bot/slack', async (_req, res) => {
+// Send summary via notifications (Slack and/or Email)
+metricsRouter.post('/bot/notify', async (_req, res) => {
 	try {
 		const metrics = await getWeeklyMetrics();
 		const summary = await generateAISummary(metrics);
-		await sendToSlack(summary, metrics);
+		await sendNotifications({ summary, metrics });
 		
 		res.json({
 			status: 'ok',
-			message: 'Summary sent to Slack',
+			message: 'Summary sent via configured notification channels',
 			generated_at: new Date().toISOString()
 		});
 	} catch (error) {
-		logger.error('Error sending bot summary to Slack:', error);
+		logger.error('Error sending bot summary notifications:', error);
 		res.status(500).json({ error: 'Internal server error' });
 	}
 });

@@ -10,9 +10,9 @@ async function sendReport() {
 			throw new Error('API_TOKEN not configured');
 		}
 
-		logger.info('📊 Sending metrics report to Slack...');
+		logger.info('📊 Sending metrics report via configured notification channels...');
 
-		const response = await fetch(`${apiUrl}/api/metrics/bot/slack`, {
+		const response = await fetch(`${apiUrl}/api/metrics/bot/notify`, {
 			method: 'POST',
 			headers: {
 				'Authorization': `Bearer ${apiToken}`,
@@ -25,7 +25,7 @@ async function sendReport() {
 			throw new Error(`Failed to send report (HTTP ${response.status}): ${error}`);
 		}
 
-		logger.info('✅ Report sent to Slack successfully!');
+		logger.info('✅ Report sent successfully!');
 
 	} catch (error) {
 		logger.error('Failed to send report:', error);

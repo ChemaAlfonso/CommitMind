@@ -16,7 +16,7 @@
 -   🔄 **Collects** data via webhooks (real-time) or polling (periodic)
 -   📈 **Visualizes** developer activity patterns in Grafana dashboards
 -   🤖 **Generates** AI-powered weekly summaries with insights
--   💬 **Sends** automated reports to Slack
+-   💬 **Sends** automated reports via Slack and/or Email
 
 ## 🚀 Quick Start
 
@@ -92,8 +92,20 @@ AI_PROVIDER=openai              # or 'anthropic'
 OPENAI_API_KEY=sk-...           # If using OpenAI
 ANTHROPIC_API_KEY=sk-ant-...    # If using Anthropic
 
-# Slack notifications
+# Notification channels (both optional, at least one recommended)
+# Slack configuration
+SLACK_ENABLED=true               # Enable Slack notifications
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+
+# Email configuration
+EMAIL_ENABLED=true               # Enable email notifications
+EMAIL_SMTP_HOST=smtp.gmail.com   # SMTP server
+EMAIL_SMTP_PORT=587              # SMTP port (587 for TLS)
+EMAIL_SMTP_SECURE=false          # Use SSL/TLS
+EMAIL_SMTP_USER=your@email.com   # SMTP username
+EMAIL_SMTP_PASS=your-app-pass    # SMTP password
+EMAIL_FROM=noreply@domain.com    # From address
+EMAIL_TO=team@domain.com         # Recipients (comma-separated)
 
 # Weekly report scheduling
 REPORT_DAY=5                     # 0=Sunday, 5=Friday
@@ -156,8 +168,8 @@ GET /api/metrics/projects/activity
 # Generate AI summary
 POST /api/metrics/bot/summary
 
-# Send Slack report
-POST /api/metrics/bot/slack
+# Send report via configured notifications
+POST /api/metrics/bot/notify
 ```
 
 ## 📜 Scripts & Commands
@@ -171,7 +183,7 @@ npm run summary
 # Get metrics in markdown format (with AI summary if configured)
 npm run summary -- --markdown
 
-# Send Slack report
+# Send report via configured notifications (Slack/Email)
 npm run report
 
 # Seed historical data (from start of the year)

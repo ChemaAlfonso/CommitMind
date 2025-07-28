@@ -21,11 +21,24 @@ export const env = {
 	GITHUB_PAT: process.env.GITHUB_PAT || '',
 	GITLAB_PAT: process.env.GITLAB_PAT || '',
 
-	// AI and Slack
+	// AI and Notifications
 	AI_PROVIDER: process.env.AI_PROVIDER || 'openai',
 	OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
 	ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
+	
+	// Slack configuration
+	SLACK_ENABLED: process.env.SLACK_ENABLED === 'true',
 	SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL || '',
+	
+	// Email configuration
+	EMAIL_ENABLED: process.env.EMAIL_ENABLED === 'true',
+	EMAIL_SMTP_HOST: process.env.EMAIL_SMTP_HOST || '',
+	EMAIL_SMTP_PORT: parseInt(process.env.EMAIL_SMTP_PORT || '587', 10),
+	EMAIL_SMTP_SECURE: process.env.EMAIL_SMTP_SECURE === 'true',
+	EMAIL_SMTP_USER: process.env.EMAIL_SMTP_USER || '',
+	EMAIL_SMTP_PASS: process.env.EMAIL_SMTP_PASS || '',
+	EMAIL_FROM: process.env.EMAIL_FROM || '',
+	EMAIL_TO: process.env.EMAIL_TO || '',
 
 	// Polling configuration
 	POLLING_INTERVAL_MINUTES: process.env.POLLING_INTERVAL_MINUTES || 'never',

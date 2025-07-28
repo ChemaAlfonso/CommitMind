@@ -3,6 +3,11 @@ import { env } from '../config';
 import { logger } from './logger';
 
 export async function sendToSlack(summary: string, metrics: any): Promise<void> {
+	if (!env.SLACK_ENABLED) {
+		logger.debug('Slack notifications are disabled');
+		return;
+	}
+
 	if (!env.SLACK_WEBHOOK_URL) {
 		throw new Error('SLACK_WEBHOOK_URL not configured');
 	}

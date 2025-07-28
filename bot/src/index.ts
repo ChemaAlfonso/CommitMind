@@ -9,18 +9,18 @@ async function main() {
 	try {
 		logger.info('Generating and sending weekly developer metrics summary...');
 		
-		// Generate summary and send to Slack in one call
-		await axios.post(`${API_URL}/api/metrics/bot/slack`, {}, {
+		// Generate summary and send via configured notification channels
+		await axios.post(`${API_URL}/api/metrics/bot/notify`, {}, {
 			headers: { Authorization: `Bearer ${API_TOKEN}` }
 		});
 		
-		logger.info('Weekly metrics summary sent to Slack successfully');
+		logger.info('Weekly metrics summary sent via configured notification channels');
 		
 	} catch (error) {
 		logger.error({ error }, 'Error generating summary');
-		// If Slack webhook is not configured, we might want to just generate the summary
-		if (axios.isAxiosError(error) && error.response?.data?.error?.includes('SLACK_WEBHOOK_URL')) {
-			logger.info('Slack webhook not configured, generating summary only...');
+		// If notifications are not configured, we might want to just generate the summary
+		if (axios.isAxiosError(error) && error.response?.data?.error?.includes('No notification methods are enabled')) {
+			logger.info('No notification methods configured, generating summary only...');
 			try {
 				const response = await axios.post(`${API_URL}/api/metrics/bot/summary`, {}, {
 					headers: { Authorization: `Bearer ${API_TOKEN}` }
