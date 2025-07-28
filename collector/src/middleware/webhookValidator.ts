@@ -42,23 +42,3 @@ export function validateGitLabWebhook(req: Request, res: Response, next: NextFun
 	
 	next();
 }
-
-export function validateManualWebhook(req: Request, res: Response, next: NextFunction): void {
-	const authHeader = req.headers.authorization;
-	
-	if (!authHeader || !authHeader.startsWith('Bearer ')) {
-		logger.warn('Manual webhook missing authorization', { ip: req.ip });
-		res.status(401).json({ error: 'Unauthorized' });
-		return;
-	}
-	
-	const token = authHeader.substring(7);
-	
-	if (token !== env.API_TOKEN) {
-		logger.warn('Manual webhook invalid token', { ip: req.ip });
-		res.status(401).json({ error: 'Unauthorized' });
-		return;
-	}
-	
-	next();
-}
