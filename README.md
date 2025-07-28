@@ -160,7 +160,7 @@ npm run summary
 # Send Slack report
 npm run report
 
-# Seed historical data (from 2024-01-01)
+# Seed historical data (from start of the year)
 npm run seed
 
 # Seed from specific date
