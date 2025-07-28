@@ -1,7 +1,7 @@
 {
-	"name": "lean-dev-metrics",
+	"name": "commitmind",
 	"version": "1.0.0",
-	"description": "Commit-based developer productivity tracking with AI insights",
+	"description": "CommitMind: Commit-based developer productivity tracking with AI insights",
 	"scripts": {
 		"dev": "./start.sh",
 		"build": "./build.sh",

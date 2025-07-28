@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Development start script for Lean Dev Metrics
+# Development start script for CommitMind
 # Usage: ./start.sh
 
 # Create .env.local with development defaults if it doesn't exist
@@ -19,7 +19,7 @@ set -a
 source .env.local
 set +a
 
-echo "🚀 Starting Lean Dev Metrics development environment..."
+echo "🚀 Starting CommitMind development environment..."
 
 # Set development environment
 export NODE_ENV=development
@@ -58,7 +58,7 @@ docker run -d --name grafana-dev \
     -v $PROJECT_ROOT/grafana/provisioning:/etc/grafana/provisioning \
     -v $PROJECT_ROOT/data:/data:ro \
     -e GF_INSTALL_PLUGINS=frser-sqlite-datasource \
-    -e GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/lean-metrics.json \
+    -e GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/commitmind-metrics.json \
     grafana/grafana:10.0.0 > /dev/null
 
 # Cleanup on exit

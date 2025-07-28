@@ -1,4 +1,4 @@
-# Lean Dev Metrics
+# CommitMind
 
 Automated developer contribution tracking for GitHub/GitLab with AI-powered insights and productivity visualization.
 
@@ -33,7 +33,7 @@ This automatically:
 npm run build
 
 # Deploy to server
-rsync -avz dist/ user@your-server:/path/to/lean-dev-metrics/
+rsync -avz dist/ user@your-server:/path/to/commitmind/
 
 # On server
 docker compose up -d

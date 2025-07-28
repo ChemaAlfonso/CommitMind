@@ -1,7 +1,7 @@
 services:
     collector:
         build: ./collector
-        container_name: lean-metrics-collector
+        container_name: commitmind-collector
         env_file:
             - .env
         environment:
@@ -18,7 +18,7 @@ services:
 
     init-db:
         build: ./collector
-        container_name: lean-metrics-init-db
+        container_name: commitmind-init-db
         command: ['npm', 'run', 'migrate']
         env_file:
             - .env
@@ -29,7 +29,7 @@ services:
 
     grafana:
         image: grafana/grafana:main
-        container_name: lean-metrics-grafana
+        container_name: commitmind-grafana
         env_file:
             - .env
         environment:
@@ -55,7 +55,7 @@ services:
 
     bot:
         build: ./bot
-        container_name: lean-metrics-bot
+        container_name: commitmind-bot
         env_file:
             - .env
         environment:

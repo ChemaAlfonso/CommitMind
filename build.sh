@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🏗️  Building Lean Dev Metrics for production..."
+echo "🏗️  Building CommitMind for production..."
 
 # Clean previous build
 echo "📦 Cleaning previous build..."
