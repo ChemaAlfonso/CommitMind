@@ -1,12 +1,14 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { logger } from './logger';
+import { env } from './config';
 
 const execAsync = promisify(exec);
 
-// Get config from environment
-const REPORT_DAY = parseInt(process.env.REPORT_DAY || '5'); // 0=Sunday, 5=Friday
-const REPORT_HOUR = parseInt(process.env.REPORT_HOUR || '17'); // 24-hour format
-const TIMEZONE = process.env.TZ || 'Europe/Madrid';
+// Get config from centralized config
+const REPORT_DAY = env.REPORT_DAY;
+const REPORT_HOUR = env.REPORT_HOUR;
+const TIMEZONE = env.TZ;
 
 // Calculate milliseconds until next scheduled report
 function getNextScheduledTime(): Date {
@@ -37,22 +39,22 @@ function getNextScheduledTime(): Date {
 }
 
 async function runWeeklySummary() {
-	console.log('Running commit-based developer metrics summary...');
+	logger.info('Running commit-based developer metrics summary...');
 	try {
 		const { stdout, stderr } = await execAsync('node /app/dist/index.js');
-		if (stdout) console.log(stdout);
-		if (stderr) console.error(stderr);
+		if (stdout) logger.info({ stdout }, 'Summary execution output');
+		if (stderr) logger.error({ stderr }, 'Summary execution error output');
 	} catch (error) {
-		console.error('Error running metrics summary:', error);
+		logger.error({ error }, 'Error running metrics summary');
 	}
 }
 
 async function scheduler() {
 	const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-	console.log(`Metrics summary scheduler started - Reports on ${dayNames[REPORT_DAY]} at ${REPORT_HOUR}:00 ${TIMEZONE}`);
+	logger.info({ reportDay: dayNames[REPORT_DAY], reportHour: REPORT_HOUR, timezone: TIMEZONE }, 'Metrics summary scheduler started');
 	
-	// Run immediately if requested via environment variable
-	if (process.env.RUN_ON_START === 'true') {
+	// Run immediately if requested via config
+	if (env.RUN_ON_START) {
 		await runWeeklySummary();
 	}
 	
@@ -61,8 +63,8 @@ async function scheduler() {
 		const next = getNextScheduledTime();
 		const msUntilNext = next.getTime() - Date.now();
 		
-		console.log(`Next metrics summary scheduled for: ${next.toISOString()}`);
-		console.log(`Waiting ${Math.round(msUntilNext / 1000 / 60)} minutes...`);
+		logger.info({ nextRun: next.toISOString() }, 'Next metrics summary scheduled');
+		logger.info({ waitMinutes: Math.round(msUntilNext / 1000 / 60) }, 'Waiting for next scheduled run');
 		
 		// Wait until next scheduled time
 		await new Promise(resolve => setTimeout(resolve, msUntilNext));
@@ -77,6 +79,6 @@ async function scheduler() {
 
 // Start the scheduler
 scheduler().catch(error => {
-	console.error('Scheduler error:', error);
+	logger.error({ error }, 'Scheduler error');
 	process.exit(1);
 });

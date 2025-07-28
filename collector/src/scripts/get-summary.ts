@@ -1,23 +1,16 @@
-import { config } from 'dotenv';
 import { logger } from '../services/logger';
-import * as path from 'path';
-
-// Load environment variables
-const envPath = process.env.NODE_ENV === 'production' 
-	? path.resolve(process.cwd(), '.env')
-	: path.resolve(process.cwd(), '..', '.env.local');
-config({ path: envPath });
+import { env } from '../config';
 
 async function getSummary() {
 	try {
-		const apiUrl = process.env.API_URL || 'http://localhost:3000';
-		const apiToken = process.env.API_TOKEN;
+		const apiUrl = env.API_URL;
+		const apiToken = env.API_TOKEN;
 
 		if (!apiToken) {
 			throw new Error('API_TOKEN not configured');
 		}
 
-		console.log('📊 Getting metrics summary...');
+		logger.info('📊 Getting metrics summary...');
 
 		const response = await fetch(`${apiUrl}/api/metrics/bot/summary`, {
 			method: 'POST',
@@ -43,22 +36,19 @@ async function getSummary() {
 			};
 		};
 
-		console.log('✅ Summary generated successfully!');
-		console.log('');
-		console.log(data.summary);
-		console.log('');
-		console.log('📈 Metrics:');
-		console.log(JSON.stringify({
+		logger.info('✅ Summary generated successfully!');
+		logger.info({ summary: data.summary }, 'Generated summary');
+		logger.info({ metrics: {
 			totalCommits: data.metrics.totalCommits,
 			activeProjects: data.metrics.activeProjects,
 			activeDays: data.metrics.activeDays,
 			prsMerged: data.metrics.prsMerged,
 			weekOverWeekChange: data.metrics.weekOverWeekChange
-		}, null, 2));
+		} }, '📈 Metrics');
 
 	} catch (error) {
 		logger.error('Failed to get summary:', error);
-		console.error('❌', error instanceof Error ? error.message : 'Unknown error');
+		logger.error({ error }, '❌ Failed to get summary');
 		process.exit(1);
 	}
 }

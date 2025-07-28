@@ -7,6 +7,7 @@ export const env = {
 	// Server
 	NODE_ENV: process.env.NODE_ENV || 'development',
 	PORT: parseInt(process.env.PORT || '3000', 10),
+	API_URL: process.env.API_URL || 'http://localhost:3000',
 
 	// Database
 	SQLITE_PATH: process.env.SQLITE_PATH || join(__dirname, '../../data/metrics.db'),
@@ -28,7 +29,13 @@ export const env = {
 
 	// Polling configuration
 	POLLING_INTERVAL_MINUTES: process.env.POLLING_INTERVAL_MINUTES || 'never',
-	POLLING_LOOKBACK_HOURS: parseInt(process.env.POLLING_LOOKBACK_HOURS || '24', 10)
+	POLLING_LOOKBACK_HOURS: parseInt(process.env.POLLING_LOOKBACK_HOURS || '24', 10),
+
+	// Logging configuration
+	LOG_LEVEL: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
+	LOG_TO_CONSOLE: process.env.LOG_TO_CONSOLE !== 'false',
+	LOG_TO_FILE: process.env.LOG_TO_FILE !== 'false',
+	LOG_FILE_LEVEL: process.env.LOG_FILE_LEVEL || process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug')
 } as const;
 
 // Validate required environment variables

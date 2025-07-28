@@ -1,23 +1,16 @@
-import { config } from 'dotenv';
 import { logger } from '../services/logger';
-import * as path from 'path';
-
-// Load environment variables
-const envPath = process.env.NODE_ENV === 'production' 
-	? path.resolve(process.cwd(), '.env')
-	: path.resolve(process.cwd(), '..', '.env.local');
-config({ path: envPath });
+import { env } from '../config';
 
 async function sendReport() {
 	try {
-		const apiUrl = process.env.API_URL || 'http://localhost:3000';
-		const apiToken = process.env.API_TOKEN;
+		const apiUrl = env.API_URL;
+		const apiToken = env.API_TOKEN;
 
 		if (!apiToken) {
 			throw new Error('API_TOKEN not configured');
 		}
 
-		console.log('📊 Sending metrics report to Slack...');
+		logger.info('📊 Sending metrics report to Slack...');
 
 		const response = await fetch(`${apiUrl}/api/metrics/bot/slack`, {
 			method: 'POST',
@@ -32,11 +25,11 @@ async function sendReport() {
 			throw new Error(`Failed to send report (HTTP ${response.status}): ${error}`);
 		}
 
-		console.log('✅ Report sent to Slack successfully!');
+		logger.info('✅ Report sent to Slack successfully!');
 
 	} catch (error) {
 		logger.error('Failed to send report:', error);
-		console.error('❌', error instanceof Error ? error.message : 'Unknown error');
+		logger.error({ error }, '❌ Failed to send report');
 		process.exit(1);
 	}
 }

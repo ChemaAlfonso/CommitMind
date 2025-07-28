@@ -58,8 +58,9 @@ echo "🐳 Copying Docker configuration..."
 cp docker-compose.yaml dist/
 cp .env dist/
 
-# Create minimal data directory
+# Create minimal data and logs directories
 mkdir -p dist/data
+mkdir -p dist/logs
 
 # Clean up individual project dist directories to prevent confusion
 echo "🧹 Cleaning up individual project dist directories..."

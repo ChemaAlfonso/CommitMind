@@ -1,11 +1,11 @@
 import pino from 'pino';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
-import { env } from '../config';
+import { env } from './config';
 
 // Ensure logs directory exists
 // In Docker, we use /app/logs which is mapped to host ./logs
-const logsDir = env.NODE_ENV === 'production' ? '/app/logs' : join(__dirname, '../../../logs');
+const logsDir = env.NODE_ENV === 'production' ? '/app/logs' : join(__dirname, '../../logs');
 if (!existsSync(logsDir)) {
 	mkdirSync(logsDir, { recursive: true });
 }
@@ -35,7 +35,7 @@ if (LOG_TO_CONSOLE) {
 
 // File transport
 if (LOG_TO_FILE) {
-	const logFileName = `collector-${new Date().toISOString().split('T')[0]}.log`;
+	const logFileName = `bot-${new Date().toISOString().split('T')[0]}.log`;
 	const logFilePath = join(logsDir, logFileName);
 	transports.push({
 		target: 'pino/file',
@@ -46,7 +46,7 @@ if (LOG_TO_FILE) {
 		level: LOG_FILE_LEVEL
 	});
 	// Log where we're writing
-	console.log(`Collector logs will be written to: ${logFilePath}`);
+	console.log(`Bot logs will be written to: ${logFilePath}`);
 }
 
 // Create logger with transports
@@ -64,7 +64,7 @@ export const logger = transports.length > 0
 
 // Log startup configuration
 logger.info({
-	msg: 'CommitMind collector logger initialized',
+	msg: 'CommitMind bot logger initialized',
 	config: {
 		logLevel: LOG_LEVEL,
 		logToConsole: LOG_TO_CONSOLE,

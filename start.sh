@@ -26,8 +26,9 @@ export NODE_ENV=development
 PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 export SQLITE_PATH=$PROJECT_ROOT/data/metrics.db
 
-# Ensure database exists
+# Ensure database and logs directories exist
 mkdir -p data
+mkdir -p logs
 
 # Install dependencies if needed
 if [ ! -d "collector/node_modules" ]; then

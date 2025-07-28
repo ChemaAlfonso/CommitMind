@@ -2,23 +2,20 @@
 
 import { Octokit } from '@octokit/rest';
 import { Gitlab } from '@gitbeaker/rest';
-import { config } from 'dotenv';
-import { join } from 'path';
 import { insertEvent, commitExists, prExists } from '../db/queries';
 import { initDatabase } from '../db/database';
 import { logger } from '../services/logger';
+import { env } from '../config';
 
-// Load environment variables
-const envPath = join(__dirname, '../../../.env.local');
-config({ path: envPath });
+const currentYear = new Date().getFullYear();
+const SINCE_DATE = process.argv[2] || `${currentYear}-01-01`;
+const GITHUB_PAT = env.GITHUB_PAT;
+const GITLAB_PAT = env.GITLAB_PAT;
 
-const SINCE_DATE = process.argv[2] || '2025-01-01';
-const GITHUB_PAT = process.env.GITHUB_PAT;
-const GITLAB_PAT = process.env.GITLAB_PAT;
-
-logger.info(`Loading environment from: ${envPath}`);
 logger.info(`GitHub PAT: ${GITHUB_PAT ? 'Found' : 'Not found'}`);
 logger.info(`GitLab PAT: ${GITLAB_PAT ? 'Found' : 'Not found'}`);
+logger.info(`Seeding data from: ${SINCE_DATE}`);
+logger.info(`Database path: ${env.SQLITE_PATH}`);
 
 async function seedGitHubData() {
 	if (!GITHUB_PAT) {

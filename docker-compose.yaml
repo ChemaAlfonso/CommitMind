@@ -10,6 +10,7 @@ services:
             - SQLITE_PATH=/data/metrics.db
         volumes:
             - ./data:/data
+            - ./logs:/app/logs
         ports:
             - "3000:3000"
         restart: unless-stopped
@@ -26,6 +27,7 @@ services:
             - SQLITE_PATH=/data/metrics.db
         volumes:
             - ./data:/data
+            - ./logs:/app/logs
 
     grafana:
         image: grafana/grafana:main
@@ -63,6 +65,7 @@ services:
             - API_URL=http://collector:3000
         volumes:
             - ./data:/data:ro
+            - ./logs:/app/logs
         restart: unless-stopped
         depends_on:
             - collector
