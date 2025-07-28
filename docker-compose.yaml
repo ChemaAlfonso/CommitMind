@@ -1,0 +1,71 @@
+services:
+    collector:
+        build: ./collector
+        container_name: lean-metrics-collector
+        env_file:
+            - .env
+        environment:
+            - NODE_ENV=production
+            - PORT=3000
+            - SQLITE_PATH=/data/metrics.db
+        volumes:
+            - ./data:/data
+        ports:
+            - "3000:3000"
+        restart: unless-stopped
+        depends_on:
+            - init-db
+
+    init-db:
+        build: ./collector
+        container_name: lean-metrics-init-db
+        command: ['npm', 'run', 'migrate']
+        env_file:
+            - .env
+        environment:
+            - SQLITE_PATH=/data/metrics.db
+        volumes:
+            - ./data:/data
+
+    grafana:
+        image: grafana/grafana:main
+        container_name: lean-metrics-grafana
+        env_file:
+            - .env
+        environment:
+            - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:-admin}
+            - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+            - GF_USERS_ALLOW_SIGN_UP=false
+            - GF_PLUGINS_PREINSTALL=frser-sqlite-datasource
+            - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+        volumes:
+            - ./grafana/provisioning:/etc/grafana/provisioning:ro
+            - ./data:/data:ro
+            - grafana-storage:/var/lib/grafana
+        ports:
+            - "3001:3000"
+        restart: unless-stopped
+        depends_on:
+            - collector
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.5'
+                    memory: 200M
+
+    bot:
+        build: ./bot
+        container_name: lean-metrics-bot
+        env_file:
+            - .env
+        environment:
+            - SQLITE_PATH=/data/metrics.db
+            - API_URL=http://collector:3000
+        volumes:
+            - ./data:/data:ro
+        restart: unless-stopped
+        depends_on:
+            - collector
+
+volumes:
+    grafana-storage:

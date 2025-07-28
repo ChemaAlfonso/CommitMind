@@ -1,0 +1,22 @@
+apiVersion: 1
+
+datasources:
+  - name: SQLite
+    uid: sqlite-uid
+    type: frser-sqlite-datasource
+    access: direct
+    isDefault: true
+    jsonData:
+      path: /data/metrics.db
+    editable: false
+
+  - name: Metrics API
+    type: simplejson
+    access: proxy
+    url: http://collector:3000/api/metrics
+    isDefault: false
+    jsonData:
+      httpHeaderName1: 'Authorization'
+    secureJsonData:
+      httpHeaderValue1: 'Bearer ${API_TOKEN}'
+    editable: false

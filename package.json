@@ -1,0 +1,23 @@
+{
+	"name": "lean-dev-metrics",
+	"version": "1.0.0",
+	"description": "Commit-based developer productivity tracking with AI insights",
+	"scripts": {
+		"dev": "./start.sh",
+		"build": "./build.sh",
+		"report": "cd collector && npm run report",
+		"report:prod": "cd collector && npm run report:prod",
+		"summary": "cd collector && npm run summary",
+		"summary:prod": "cd collector && npm run summary:prod",
+		"seed": "cd collector && npm run seed"
+	},
+	"keywords": [
+		"metrics",
+		"developer",
+		"productivity",
+		"commits",
+		"ai"
+	],
+	"author": "Chema Alonso <hola@chemaalfonso.com>",
+	"license": "MIT"
+}
