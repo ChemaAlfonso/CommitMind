@@ -2,23 +2,26 @@ import { OpenAI } from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { env } from '../config';
 import { logger } from './logger';
+import { WeeklyMetrics, formatMetricsAsMarkdown } from './metrics';
 
-export async function generateAISummary(metrics: any): Promise<string> {
-	const prompt = `Eres un analista de productividad de desarrolladores. Analiza estas métricas semanales y proporciona insights EN ESPAÑOL:
+export async function generateAISummary(metrics: WeeklyMetrics): Promise<string> {
+	const formattedMetrics = formatMetricsAsMarkdown(metrics);
+	const language = env.REPORTS_LANGUAGE || 'English';
+	const prompt = `You are a developer productivity analyst. Analyze these weekly metrics and provide insights:
 
-${JSON.stringify(metrics, null, 2)}
+${formattedMetrics}
 
-Áreas de enfoque principales:
-1. Patrones de commits y consistencia
-2. Distribución de actividad por proyecto
-3. Tendencias de productividad y cambios semana a semana
-4. Balance trabajo-vida (basado en horas de commits)
-5. Patrones de colaboración (PRs fusionados, proyectos activos)
+Key focus areas:
+1. Commit patterns and consistency
+2. Activity distribution across projects
+3. Productivity trends and week-over-week changes
+4. Work-life balance (based on commit hours)
+5. Collaboration patterns (merged PRs, active projects)
 
-${metrics.deploymentStats ? 'También nota: Se realizaron ' + metrics.deploymentStats.deployments + ' despliegues esta semana.' : ''}
+${metrics.deploymentStats ? 'Also note: There were ' + metrics.deploymentStats.deployments + ' deployments this week.' : ''}
 
-Proporciona insights accionables sobre la efectividad y salud del desarrollador. Sé alentador y constructivo. Mantenlo conciso.
-IMPORTANTE: Responde en español y usa formato simple sin markdown (no uses **, *, #, etc).`;
+Provide actionable insights about developer effectiveness and health. Be encouraging and constructive. Keep it concise.
+IMPORTANT: Respond in ${language} and use simple format without markdown (don't use **, *, #, etc).`;
 
 	try {
 		if (env.AI_PROVIDER === 'anthropic' && env.ANTHROPIC_API_KEY) {

@@ -35,7 +35,10 @@ export const env = {
 	LOG_LEVEL: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
 	LOG_TO_CONSOLE: process.env.LOG_TO_CONSOLE !== 'false',
 	LOG_TO_FILE: process.env.LOG_TO_FILE !== 'false',
-	LOG_FILE_LEVEL: process.env.LOG_FILE_LEVEL || process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug')
+	LOG_FILE_LEVEL: process.env.LOG_FILE_LEVEL || process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
+
+	// Reporting configuration
+	REPORTS_LANGUAGE: process.env.REPORTS_LANGUAGE || 'English'
 } as const;
 
 // Validate required environment variables

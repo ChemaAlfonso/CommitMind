@@ -17,9 +17,18 @@ export interface WeeklyMetrics {
 		successfulDeployments: number;
 		failedDeployments: number;
 	};
+	projectStats?: Array<{
+		project: string;
+		commits: number;
+		additions: number;
+		deletions: number;
+	}>;
+	hourlyDistribution?: Record<string, number>;
 }
 
-export async function getWeeklyMetrics(): Promise<WeeklyMetrics> {
+export async function getWeeklyMetrics(): Promise<WeeklyMetrics>;
+export async function getWeeklyMetrics(format: 'markdown'): Promise<string>;
+export async function getWeeklyMetrics(format?: 'markdown'): Promise<WeeklyMetrics | string> {
 	const db = getDb();
 	const allAsync = promisify(db.all.bind(db));
 	const getAsync = promisify(db.get.bind(db));
@@ -104,6 +113,11 @@ export async function getWeeklyMetrics(): Promise<WeeklyMetrics> {
 			metrics.deploymentStats = deploymentStats;
 		}
 		
+		// Return markdown format if requested
+		if (format === 'markdown') {
+			return formatMetricsAsMarkdown(metrics);
+		}
+		
 		return metrics;
 	} catch (error) {
 		logger.error('Error getting weekly metrics:', error);
@@ -161,4 +175,59 @@ export async function getDailyCommitPatterns(): Promise<any[]> {
 	`);
 	
 	return result as any[];
+}
+
+export function formatMetricsAsMarkdown(metrics: WeeklyMetrics): string {
+	let formatted = `## Weekly Metrics
+
+### Summary
+- **Total Commits**: ${metrics.totalCommits}
+- **Active Projects**: ${metrics.activeProjects}
+- **Active Days**: ${metrics.activeDays} of 7
+- **PRs/MRs Merged**: ${metrics.prsMerged}
+- **Week-over-Week Change**: ${metrics.weekOverWeekChange > 0 ? '+' : ''}${metrics.weekOverWeekChange} commits (${metrics.weekOverWeekPercent > 0 ? '+' : ''}${metrics.weekOverWeekPercent}%)
+
+### Project Activity`;
+
+	if (metrics.projectStats && metrics.projectStats.length > 0) {
+		metrics.projectStats.forEach((project) => {
+			formatted += `\n- **${project.project}**: ${project.commits} commits, ${project.additions}+ / ${project.deletions}- lines`;
+		});
+	} else if (metrics.topProjects && metrics.topProjects.length > 0) {
+		metrics.topProjects.forEach((project) => {
+			formatted += `\n- **${project.service}**: ${project.commits} commits`;
+		});
+	}
+
+	if (metrics.hourlyDistribution) {
+		formatted += `\n\n### Hourly Commit Distribution\n`;
+		const sortedHours = Object.entries(metrics.hourlyDistribution)
+			.sort(([a], [b]) => parseInt(a) - parseInt(b))
+			.filter(([_, count]) => count > 0);
+		
+		if (sortedHours.length > 0) {
+			sortedHours.forEach(([hour, count]) => {
+				const hourNum = parseInt(hour);
+				const timeRange = `${hourNum.toString().padStart(2, '0')}:00-${(hourNum + 1).toString().padStart(2, '0')}:00`;
+				formatted += `- ${timeRange}: ${count} commits\n`;
+			});
+		}
+	} else if (metrics.commitPatterns && metrics.commitPatterns.length > 0) {
+		formatted += `\n\n### Hourly Commit Distribution\n`;
+		metrics.commitPatterns
+			.filter(pattern => pattern.commits > 0)
+			.forEach(pattern => {
+				const timeRange = `${pattern.hour.toString().padStart(2, '0')}:00-${(pattern.hour + 1).toString().padStart(2, '0')}:00`;
+				formatted += `- ${timeRange}: ${pattern.commits} commits\n`;
+			});
+	}
+
+	if (metrics.deploymentStats && metrics.deploymentStats.deployments > 0) {
+		formatted += `\n\n### Deployments\n`;
+		formatted += `- **Total Deployments**: ${metrics.deploymentStats.deployments}\n`;
+		formatted += `- **Successful**: ${metrics.deploymentStats.successfulDeployments}\n`;
+		formatted += `- **Failed**: ${metrics.deploymentStats.failedDeployments}`;
+	}
+
+	return formatted;
 }

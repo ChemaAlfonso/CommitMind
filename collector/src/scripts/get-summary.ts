@@ -1,50 +1,38 @@
 import { logger } from '../services/logger';
-import { env } from '../config';
+import { getWeeklyMetrics, formatMetricsAsMarkdown } from '../services/metrics';
+import { generateAISummary } from '../services/ai';
+
+// Check command line arguments
+const args = process.argv.slice(2);
+const useMarkdown = args.includes('--markdown') || args.includes('-m');
 
 async function getSummary() {
 	try {
-		const apiUrl = env.API_URL;
-		const apiToken = env.API_TOKEN;
-
-		if (!apiToken) {
-			throw new Error('API_TOKEN not configured');
-		}
-
 		logger.info('📊 Getting metrics summary...');
 
-		const response = await fetch(`${apiUrl}/api/metrics/bot/summary`, {
-			method: 'POST',
-			headers: {
-				'Authorization': `Bearer ${apiToken}`,
-				'Content-Type': 'application/json'
+		// Get metrics directly from database
+		const metrics = await getWeeklyMetrics();
+		
+		if (useMarkdown) {
+			// Just output the markdown metrics
+			const markdownMetrics = formatMetricsAsMarkdown(metrics);
+			console.log(markdownMetrics);
+			
+			// Also generate AI summary if available
+			try {
+				const summary = await generateAISummary(metrics);
+				console.log('\n## AI Summary\n');
+				console.log(summary);
+			} catch (aiError) {
+				logger.warn('Could not generate AI summary:', aiError);
 			}
-		});
-
-		if (!response.ok) {
-			const error = await response.text();
-			throw new Error(`Failed to get summary (HTTP ${response.status}): ${error}`);
+		} else {
+			// Generate AI summary
+			const summary = await generateAISummary(metrics);
+			logger.info('✅ Summary generated successfully!');
+			logger.info({ summary }, 'Generated summary');
+			logger.info({ metrics }, '📈 Metrics');
 		}
-
-		const data = await response.json() as {
-			summary: string;
-			metrics: {
-				totalCommits: number;
-				activeProjects: number;
-				activeDays: number;
-				prsMerged: number;
-				weekOverWeekChange: string;
-			};
-		};
-
-		logger.info('✅ Summary generated successfully!');
-		logger.info({ summary: data.summary }, 'Generated summary');
-		logger.info({ metrics: {
-			totalCommits: data.metrics.totalCommits,
-			activeProjects: data.metrics.activeProjects,
-			activeDays: data.metrics.activeDays,
-			prsMerged: data.metrics.prsMerged,
-			weekOverWeekChange: data.metrics.weekOverWeekChange
-		} }, '📈 Metrics');
 
 	} catch (error) {
 		logger.error('Failed to get summary:', error);

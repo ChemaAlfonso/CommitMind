@@ -157,6 +157,9 @@ POST /api/metrics/bot/slack
 # Get AI summary
 npm run summary
 
+# Get metrics in markdown format (with AI summary if configured)
+npm run summary -- --markdown
+
 # Send Slack report
 npm run report
 
