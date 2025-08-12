@@ -41,7 +41,7 @@ function getNextScheduledTime(): Date {
 async function runWeeklySummary() {
 	logger.info('Running commit-based developer metrics summary...');
 	try {
-		const { stdout, stderr } = await execAsync('node /app/dist/index.js');
+		const { stdout, stderr } = await execAsync('node index.js');
 		if (stdout) logger.info({ stdout }, 'Summary execution output');
 		if (stderr) logger.error({ stderr }, 'Summary execution error output');
 	} catch (error) {
