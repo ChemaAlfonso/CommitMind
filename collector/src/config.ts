@@ -25,6 +25,8 @@ export const env = {
 	AI_PROVIDER: process.env.AI_PROVIDER || 'openai',
 	OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
 	ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
+	ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL || 'claude-3-opus-20240229',
+	OPENAI_MODEL: process.env.OPENAI_MODEL || 'gpt-5-mini',
 	
 	// Slack configuration
 	SLACK_ENABLED: process.env.SLACK_ENABLED === 'true',

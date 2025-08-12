@@ -27,7 +27,7 @@ IMPORTANT: Respond in ${language} and use simple format without markdown (don't 
 		if (env.AI_PROVIDER === 'anthropic' && env.ANTHROPIC_API_KEY) {
 			const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 			const response = await anthropic.messages.create({
-				model: 'claude-3-opus-20240229',
+				model: env.ANTHROPIC_MODEL,
 				messages: [{ role: 'user', content: prompt }],
 				max_tokens: 500
 			});
@@ -35,7 +35,7 @@ IMPORTANT: Respond in ${language} and use simple format without markdown (don't 
 		} else if (env.OPENAI_API_KEY) {
 			const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 			const response = await openai.chat.completions.create({
-				model: 'gpt-4o-mini',
+				model: env.OPENAI_MODEL,
 				messages: [{ role: 'user', content: prompt }],
 				max_tokens: 500
 			});
